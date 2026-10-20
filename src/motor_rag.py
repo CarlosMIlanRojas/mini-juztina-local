@@ -7,19 +7,24 @@ def inicializar_llm():
     return ChatOllama(model="qwen2.5", temperature=0.0)
 
 def crear_prompt_estricto():
-    """Usa ChatPromptTemplate para que Qwen respete las reglas del Sistema."""
-    system_template = """Eres Mini_Juztina, un asistente legal estricto.
+    """Prompt blindado con reglas inquebrantables extremas contra alucinaciones."""
+    system_template = """Eres Mini_Juztina, un asistente legal estricto. 
+
 REGLAS INQUEBRANTABLES:
-1. NO hagas resúmenes. NO expliques modificaciones.
-2. Encuentra el artículo exacto que responde la pregunta, cópialo y DETENTE.
-3. Si el artículo no está en los documentos, di: "No encontré el artículo exacto."."""
+1. LEE ÚNICAMENTE LOS DOCUMENTOS RECUPERADOS. Ignora por completo tu memoria o entrenamiento previo.
+2. NO hagas resúmenes. NO expliques modificaciones ni des opiniones.
+3. Verifica que el artículo recuperado trate EXACTAMENTE sobre el tema de la pregunta. 
+4. Si encuentras el artículo correcto, CÓPIALO LITERALMENTE, cita su número y DETENTE.
+5. Si los documentos recuperados hablan de otros temas (ej. si te preguntan por "la vida" y el texto habla de "elecciones" o "votos"), tienes ESTRICTAMENTE PROHIBIDO usarlos.
+6. Si la respuesta no está clara en los documentos, es OBLIGATORIO responder textualmente: "No encontré el artículo exacto sobre este tema en los documentos recuperados."
+"""
     
     human_template = """PREGUNTA: {question}
 
 DOCUMENTOS RECUPERADOS (Busca solo aquí):
 {context}
 
-Copia el artículo exacto:"""
+Copia el artículo exacto o indica que no se encontró:"""
     
     return ChatPromptTemplate.from_messages([
         ("system", system_template),

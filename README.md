@@ -64,11 +64,11 @@ pip install -r requirements.txt
 
 ### 5. Descargar el Modelo Local
 
-Abre una nueva terminal y descarga el modelo Llama 3 en Ollama (esto descargará aproximadamente 4.7 GB la primera vez):
+Abre una nueva terminal y descarga el modelo Qwen2.5 en Ollama (esto descargará aproximadamente 4.7 GB la primera vez):
 ```bash
-ollama run llama3
+ollama pull qwen2.5
 ```
-*(Una vez descargado y en la línea de comandos interactiva de Ollama, puedes cerrarla o escribir `/bye`).*
+
 
 ### 6. Ejecución del Sistema
 

@@ -1,38 +1,50 @@
-from langchain_community.llms import Ollama
-from langchain_coreprompts import PromptTemplate
-from langchain_chains.combine_documents import create_stuff_documents_chain
+from langchain_ollama import ChatOllama
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import RunnablePassthrough
 
 def inicializar_llm():
-    #Instanciamos el modelo local.
-    llm = Ollama(model="llama3", temperature=0.1)
-    return llm
+    return ChatOllama(model="qwen2.5", temperature=0.0)
 
-def crear_promp_estricto():
-    template = """
-    Eres Mini_Juztina, un asistente legal estricto especializado EXCLUSIVAMENTE en la Constitución Politica del Perú y el Código Penal Peruano.
+def crear_prompt_estricto():
+    """Usa ChatPromptTemplate para que Qwen respete las reglas del Sistema."""
+    system_template = """Eres Mini_Juztina, un asistente legal estricto.
+REGLAS INQUEBRANTABLES:
+1. NO hagas resúmenes. NO expliques modificaciones.
+2. Encuentra el artículo exacto que responde la pregunta, cópialo y DETENTE.
+3. Si el artículo no está en los documentos, di: "No encontré el artículo exacto."."""
+    
+    human_template = """PREGUNTA: {question}
 
-    REGLAS OBLIGATORIAS:
-    1. Si la pregunta NO se trata sobe la Constitución Política del Perú o el Código Penal del Perú, responde EXACTAMENTE: "Lo siento, mi alcance se limita exclusivamente a consultas sobre la Constitución Política del Perú y el Código Penal Peruano. No puedo asesorar sobre esa materia."
-    2. Basa tu respuesta ÚNICAMENTE en el contexto proporcionado abajo. NO uses conocimientos externos.
-    3. NO inventes información, leyes, incisos o articulos.
-    4. Cita SIEMPRE el nombre de la ley y el número del Articulo que sustenta tu respuesta.
+DOCUMENTOS RECUPERADOS (Busca solo aquí):
+{context}
 
-    Contexto recuperado:
-    {context}
+Copia el artículo exacto:"""
+    
+    return ChatPromptTemplate.from_messages([
+        ("system", system_template),
+        ("human", human_template)
+    ])
 
-    Pregunta: {input}
-    Respuesta:
-    """
-    return PromptTemplate.from_template(template)
-
-def configurar_asistencia(retriever):
+def configurar_asistente(retriever):
     llm = inicializar_llm()
-    prompt = crear_promp_estricto()
+    prompt = crear_prompt_estricto()
+    
+    def formatear_documentos(docs):
+        return "\n\n---\n\n".join(doc.page_content for doc in docs)
 
-    # 1. Cadena de documentos: Emsambla el LLM con nuestras eglas (prompt)
-    document_chain = create_stuff_documents_chain(llm, prompt)
+    recuperador = RunnablePassthrough.assign(
+        context=lambda x: retriever.invoke(x["question"])
+    )
 
-    # 2. Cadena de recuperación: Conecta el buscador (retriever) con la cadena de documentos
-    rag_chain = create_retrieval_chain(retriever, document_chain)
+    cadena_generacion = (
+        {
+            "context": lambda x: formatear_documentos(x["context"]),
+            "question": lambda x: x["question"]
+        }
+        | prompt
+        | llm
+        | StrOutputParser()
+    )
 
-    return rag_chain
+    return recuperador | RunnablePassthrough.assign(answer=cadena_generacion)

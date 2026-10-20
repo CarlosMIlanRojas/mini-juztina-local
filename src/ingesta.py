@@ -44,7 +44,7 @@ def chunking_spij(texto, nombre_fuente):
         linea = lineas[i]
         
         # Filtrar enlaces de jurisprudencia del SPIJ que ensucian el texto
-        if linea in ["PROCESOS CONSTITUCIONALES", "CONCORDANCIA NORMATIVA"] or linea.startswith("JURISPRUDENCIA DE LA CORTE"):
+        if linea in ["PROCESOS CONSTITUCIONALES", "CONCORDANCIA NORMATIVA"] or linea.startswith("JURISPRUDENCIA DE LA CORTE") or linea.startswith("CONCORDANCIAS"):
             i += 1
             continue
             
@@ -147,10 +147,7 @@ print(f"   -> Artículos del Código Penal extraídos: {len(docs_penal)}")
 print(f"   -> Total de fragmentos en la base: {len(todos_los_docs)}")
 
 print("3. Cargando modelo de embeddings local (HuggingFace)...")
-embeddings = HuggingFaceEmbeddings(
-    model_name="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
-    model_kwargs={'device': 'cpu'}
-)
+embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
 
 print("4. Guardando Base de Datos Vectorial limpia en './chroma_db_legal'...")
 vectorstore = Chroma.from_documents(
@@ -173,4 +170,4 @@ def obtener_retriever():
         collection_name="leyes_peru"
     )
     # Retorna el buscador configurado para traer los 4 artículos más relevantes
-    return vectorstore.as_retriever(search_kwargs={"k": 4})
+    return vectorstore.as_retriever(search_kwargs={"k": 12})

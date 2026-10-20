@@ -33,7 +33,7 @@ def obtener_respuesta_rag(prompt: str):
     Función puente que ahora SÍ conecta con el motor RAG local.
     """
     # 1. Le pasamos la pregunta a tu cerebro (motor_rag.py)
-    respuesta_rag = rag_chain.invoke({"input": prompt})
+    respuesta_rag = rag_chain.invoke({"question": prompt})
     
     # 2. Extraemos el texto generado por Ollama
     respuesta_texto = respuesta_rag["answer"]

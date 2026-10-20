@@ -46,7 +46,7 @@ def obtener_respuesta_rag(prompt: str):
     for doc in documentos_recuperados:
         sources.append({
             # Usamos .get() por si el Integrante 1 usó otros nombres en los metadatos
-            "libro": doc.metadata.get("libro", "Norma Legal"),
+            "libro": doc.metadata.get("fuente", "Norma Legal"),
             "articulo": doc.metadata.get("articulo", "Art. S/N"),
             "texto": doc.page_content
         })
